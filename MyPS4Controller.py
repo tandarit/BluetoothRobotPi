@@ -2,8 +2,10 @@
 
 from pyPS4Controller.controller import Controller, Event
 from Motor import Motor
+from Servo import Servo
 import RPi.GPIO as GPIO
 import math
+import time
 
 class MyPS4Controller(Controller):
 
@@ -11,46 +13,46 @@ class MyPS4Controller(Controller):
         Controller.__init__(self, **kwargs)
         self.L3X = 0
         self.L3Y = 0
+        self.R3X = 0
+        self.R3Y = 0
         self.leftMotorPWM = 0
         self.rightMotorPWM = 0
+        self.arrow = "None"
         self.motor = Motor()
+        self.servo = Servo()
         self.motor.InitMotorHw()
-        
-    def on_x_press(self):
-       print("Hello world")
-
-    def on_x_release(self):
-       print("Goodbye world")
+        self.servo.InitServoHw()
+        self.BASESTEPSIZE = 5      
        
     def on_L3_up(self, value):
         print("L3 up értéke: {}".format(value))
         self.L3Y = value
-        self.controll()
+        self.motorControll()
 
     def on_L3_down(self, value):
         print("L3 down értéke: {}".format(value))
         self.L3Y = value
-        self.controll()
+        self.motorControll()
 
     def on_L3_left(self, value):
         print("L3 left értéke: {}".format(value))
         self.L3X = value
-        self.controll()
+        self.motorControll()
 
     def on_L3_right(self, value):
         print("L3 right értéke: {}".format(value))
         self.L3X = value
-        self.controll()
+        self.motorControll()
         
     def on_L3_y_at_rest(self):   
         self.L3Y = 0
-        self.controll()
+        self.motorControll()
 
     def on_L3_x_at_rest(self):
         self.L3X = 0
-        self.controll()
+        self.motorControll()
 
-    def controll(self):
+    def motorControll(self):
         #stop case
         if self.L3Y == 0 and self.L3X == 0:
             self.motor.stop()
@@ -69,12 +71,26 @@ class MyPS4Controller(Controller):
             self.motor.setLeftMotorPWM(self.leftMotorPWM)
             self.motor.setRightMotorPWM(self.rightMotorPWM)       
 
+        #left case
+        if self.L3Y == 0 and self.L3X < 0:
+            self.rightMotorPWM = int((abs(self.L3X) / 32767) * 100)
+            self.leftMotorPWM = 0
+            self.motor.setLeftMotorPWM(self.leftMotorPWM)
+            self.motor.setRightMotorPWM(self.rightMotorPWM)
+
+        #right case
+        if self.L3Y == 0 and self.L3X > 0:
+            self.leftMotorPWM = int((abs(self.L3X) / 32767) * 100)
+            self.rightMotorPWM = 0
+            self.motor.setLeftMotorPWM(self.leftMotorPWM)
+            self.motor.setRightMotorPWM(self.rightMotorPWM)
+
 
         #first quater
         if self.L3Y < 0 and self.L3X < 0:           
             baseSpeedVector = math.sqrt((self.L3X * self.L3X) + (self.L3Y * self.L3Y))
-            rightMotor = baseSpeedVector * (abs(self.L3X) / 32767)
-            leftMotor = rightMotor * ((32767 - abs(self.L3X)) / 32768)
+            rightMotor = baseSpeedVector * (abs(self.L3Y) / 32767)
+            leftMotor = rightMotor * ((32767 - abs(self.L3Y)) / 32768)
             
             self.leftMotorPWM = int((leftMotor / 32767) * 100)
             self.rightMotorPWM = int((rightMotor/32767) * 100)            
@@ -93,8 +109,8 @@ class MyPS4Controller(Controller):
         #second quater
         if self.L3Y < 0 and self.L3X > 0:           
             baseSpeedVector = math.sqrt((self.L3X * self.L3X) + (self.L3Y * self.L3Y))
-            leftMotor = baseSpeedVector * (abs(self.L3X) / 32767)
-            rightMotor = leftMotor * ((32767 - abs(self.L3X)) / 32768)
+            leftMotor = baseSpeedVector * (abs(self.L3Y) / 32767)
+            rightMotor = leftMotor * ((32767 - abs(self.L3Y)) / 32768)
             
             self.leftMotorPWM = int((leftMotor / 32767) * 100)
             self.rightMotorPWM = int((rightMotor/32767) * 100)            
@@ -113,8 +129,8 @@ class MyPS4Controller(Controller):
         #third quater
         if self.L3Y > 0 and self.L3X > 0:           
             baseSpeedVector = math.sqrt((self.L3X * self.L3X) + (self.L3Y * self.L3Y))
-            rightMotor = baseSpeedVector * (abs(self.L3X) / 32767)
-            leftMotor = rightMotor * ((32767 - abs(self.L3X)) / 32768)
+            rightMotor = baseSpeedVector * (abs(self.L3Y) / 32767)
+            leftMotor = rightMotor * ((32767 - abs(self.L3Y)) / 32768)
             
             self.leftMotorPWM = int((leftMotor / 32767) * 100)
             self.rightMotorPWM = int((rightMotor/32767) * 100)         
@@ -133,8 +149,8 @@ class MyPS4Controller(Controller):
         #fourth quater
         if self.L3Y > 0 and self.L3X < 0:           
             baseSpeedVector = math.sqrt((self.L3X * self.L3X) + (self.L3Y * self.L3Y))
-            leftMotor = baseSpeedVector * (abs(self.L3X) / 32767)
-            rightMotor = leftMotor * ((32767 - abs(self.L3X)) / 32768)
+            leftMotor = baseSpeedVector * (abs(self.L3Y) / 32767)
+            rightMotor = leftMotor * ((32767 - abs(self.L3Y)) / 32768)
             
             self.leftMotorPWM = int((leftMotor / 32767) * 100)
             self.rightMotorPWM = int((rightMotor/32767) * 100)            
@@ -149,6 +165,112 @@ class MyPS4Controller(Controller):
                 self.motor.reverse()
                 self.motor.setLeftMotorPWM(self.leftMotorPWM)
                 self.motor.setRightMotorPWM(self.rightMotorPWM)
+
+    def on_up_arrow_press(self):
+        print("Up lenyomva")
+        self.arrow = "Up"
+        self.servoControll()
+
+    def on_up_down_arrow_release(self):
+        self.arrow = "None"
+        self.servoControll()
+
+    def on_down_arrow_press(self):
+        print("Down lenyomva")
+        self.arrow = "Down"
+        self.servoControll()
+
+    def on_left_arrow_press(self):
+        print("Left lenyomva")
+        self.arrow = "Left"
+        self.servoControll()
+
+    def on_left_right_arrow_release(self):
+        self.arrow = "None"
+        self.servoControll()
+
+    def on_right_arrow_press(self):
+        print("Right lenyomva")
+        self.arrow = "Right"
+        self.servoControll()
+
+    def on_R3_up(self, value):
+        print("R3 up értéke: {}".format(value))
+        self.R3Y = value        
+        self.servoControll()
+
+    def on_R3_down(self, value):
+        print("R3 down értéke: {}".format(value))
+        self.R3Y = value
+        self.servoControll()
+
+    def on_R3_left(self, value):
+        print("R3 left értéke: {}".format(value))
+        self.R3X = value
+        self.servoControll()
+
+    def on_R3_right(self, value):
+        print("R3 right értéke: {}".format(value))
+        self.R3X = value
+        self.servoControll()
+        
+    def on_R3_y_at_rest(self):   
+        self.R3Y = 0
+        self.servoControll()
+
+    def on_R3_x_at_rest(self):
+        self.R3X = 0
+        self.servoControll()
+
+
+    def servoControll(self):
+        #arm controll condition 
+        if self.arrow != "None" :
+            self.ArmServoControl()
+        else:
+            self.CameraServoControl()
+
+    def ArmServoControl(self):
+        if self.arrow == "Down":
+            tmpValue = self.servo.getArm0Position()
+            if self.R3Y > 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm0Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            if self.R3Y < 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm0Position(tmpValue - int(self.BASESTEPSIZE * stepSize))     
+
+        if self.arrow == "Right":
+            tmpValue = self.servo.getArm1Position()
+            if self.R3Y > 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm1Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            if self.R3Y < 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm1Position(tmpValue - int(self.BASESTEPSIZE * stepSize))
+
+        if self.arrow == "Up":
+            tmpValue = self.servo.getArm2Position()
+            if self.R3Y > 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm2Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            if self.R3Y < 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm2Position(tmpValue - int(self.BASESTEPSIZE * stepSize))
+
+        if self.arrow == "Left":
+            tmpValue = self.servo.getArm3Position()
+            if self.R3Y > 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm3Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            if self.R3Y < 0:
+                stepSize = abs(self.R3Y) / 32767 
+                self.servo.setArm3Position(tmpValue - int(self.BASESTEPSIZE * stepSize))
+
+    def CameraServoControl(self):
+        #ToDo I have to implemention
+        pass
+
 
     
         
@@ -199,3 +321,49 @@ class MyPS4EventDefinition(Event):
 
     def L3_right(self):
         return self.button_id == 0 and self.value > 0
+    
+    def R3_event(self):
+        return self.button_type == 2 and self.button_id in [4, 3]
+        
+    def R3_y_at_rest(self):
+        return self.button_id in [4] and self.value == 0
+        
+    def R3_x_at_rest(self):
+        return self.button_id in [3] and self.value == 0
+        
+    def R3_up(self):
+        return self.button_id == 4 and self.value < 0
+        
+    def R3_down(self):
+        return self.button_id == 4 and self.value > 0
+        
+    def R3_left(self):
+        return self.button_id == 3 and self.value < 0
+        
+    def R3_right(self):
+        return self.button_id == 3 and self.value > 0
+    """            
+    def up_arrow_pressed(self):
+        return self.button_id == 7 and self.button_type == 2 and self.value == 1
+        
+
+    def down_arrow_pressed(self):
+        return self.button_id == 7 and self.button_type == 2 and self.value == 1
+        
+
+    def up_down_arrow_released(self):
+        return self.button_id == 7 and self.button_type == 2 and self.value == 0
+        
+
+    # left / right arrows #
+    def left_arrow_pressed(self):
+        return self.button_id == 6 and self.button_type == 2 and self.value == 1
+
+    def right_arrow_pressed(self):
+        return self.button_id == 6 and self.button_type == 2 and self.value == 1
+    
+
+    def left_right_arrow_released(self):
+        return self.button_id == 6 and self.button_type == 2 and self.value == 0
+        
+"""
