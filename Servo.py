@@ -42,7 +42,7 @@ class Servo:
 
     def setArm0Position(self, value):
         #check value 0-180 just for safety
-        if value>=0 and value <= 180:
+        if value>=0 and value <= 90:
             self.rawArmPos0 = int((value * 11.11) + 500)
             self.servo.setServoPulse(self.Arm_Port1, self.rawArmPos0)
 
@@ -69,7 +69,7 @@ class Servo:
 
     def setArm3Position(self, value):
         #check value 0-180 just for safety
-        if value>=0 and value <= 180:
+        if value>=90 and value <= 165:
             self.rawArmPos3 = int((value * 11.11) + 500)
             self.servo.setServoPulse(self.Arm_Port4, self.rawArmPos3)
 
@@ -78,7 +78,7 @@ class Servo:
 
     def setCamHorPosition(self, value):
         #check value 0-180 just for safety
-        if value>=0 and value <= 180:
+        if value>=0 and value <= 165:
             self.rawCamHorPos = int((value * 11.11) + 500)
             self.servo.setServoPulse(self.Cam_Horizontal_Port, self.rawCamHorPos)
     

@@ -13,9 +13,7 @@ class RobotPiController:
         self.ps4ControllerThread.start()
         self.tcpServerThread.start()
         self.ps4ControllerThread.join()
-        self.tcpServerThread.join()
-
-        
+        self.tcpServerThread.join()       
     
     
 
@@ -27,11 +25,11 @@ class ThreadControllerClass(threading.Thread):
         
     def run(self):
         if self.threadName == "PS4ControllerThread":
-            #ide kellene bejátszani a Motor class member tagjait!!!!!!!!!!!!!
-            controller = MyPS4Controller(interface="/dev/input/js0", connecting_using_ds4drv=False, event_definition=MyPS4EventDefinition)
-            while os.system("sudo bluetoothctl -- connect DC:AF:68:A5:86:0F") != 0:
-                print("Retry to connect the PS4 controller!")    
-            controller.listen()
+            while True:
+                controller = MyPS4Controller(interface="/dev/input/js0", connecting_using_ds4drv=False, event_definition=MyPS4EventDefinition)
+                while os.system("sudo bluetoothctl -- connect DC:AF:68:A5:86:0F") != 0:
+                    print("Retry to connect the PS4 controller!")    
+                controller.listen()
             
         if self.threadName == "TCPServer":
             print ("Starting dummy TCP server thread")
@@ -41,5 +39,3 @@ class ThreadControllerClass(threading.Thread):
             print("End TCP server")
 
         
-
-						

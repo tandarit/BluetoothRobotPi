@@ -6,6 +6,7 @@ from Servo import Servo
 import RPi.GPIO as GPIO
 import math
 import time
+from datetime import datetime
 
 class MyPS4Controller(Controller):
 
@@ -25,22 +26,22 @@ class MyPS4Controller(Controller):
         self.BASESTEPSIZE = 5      
        
     def on_L3_up(self, value):
-        print("L3 up értéke: {}".format(value))
+        #print("L3 up értéke: {}".format(value))
         self.L3Y = value
         self.motorControll()
 
     def on_L3_down(self, value):
-        print("L3 down értéke: {}".format(value))
+        #print("L3 down értéke: {}".format(value))
         self.L3Y = value
         self.motorControll()
 
     def on_L3_left(self, value):
-        print("L3 left értéke: {}".format(value))
+        #print("L3 left értéke: {}".format(value))
         self.L3X = value
         self.motorControll()
 
     def on_L3_right(self, value):
-        print("L3 right értéke: {}".format(value))
+        #print("L3 right értéke: {}".format(value))
         self.L3X = value
         self.motorControll()
         
@@ -167,7 +168,7 @@ class MyPS4Controller(Controller):
                 self.motor.setRightMotorPWM(self.rightMotorPWM)
 
     def on_up_arrow_press(self):
-        print("Up lenyomva")
+        #print("Up lenyomva")
         self.arrow = "Up"
         self.servoControll()
 
@@ -176,12 +177,12 @@ class MyPS4Controller(Controller):
         self.servoControll()
 
     def on_down_arrow_press(self):
-        print("Down lenyomva")
+        #print("Down lenyomva")
         self.arrow = "Down"
         self.servoControll()
 
     def on_left_arrow_press(self):
-        print("Left lenyomva")
+        #print("Left lenyomva")
         self.arrow = "Left"
         self.servoControll()
 
@@ -190,27 +191,27 @@ class MyPS4Controller(Controller):
         self.servoControll()
 
     def on_right_arrow_press(self):
-        print("Right lenyomva")
+        #print("Right lenyomva")
         self.arrow = "Right"
         self.servoControll()
 
     def on_R3_up(self, value):
-        print("R3 up értéke: {}".format(value))
+        #print("R3 up értéke: {}".format(value))
         self.R3Y = value        
         self.servoControll()
 
     def on_R3_down(self, value):
-        print("R3 down értéke: {}".format(value))
+        #print("R3 down értéke: {}".format(value))
         self.R3Y = value
         self.servoControll()
 
     def on_R3_left(self, value):
-        print("R3 left értéke: {}".format(value))
+        #print("R3 left értéke: {}".format(value))
         self.R3X = value
         self.servoControll()
 
     def on_R3_right(self, value):
-        print("R3 right értéke: {}".format(value))
+        #print("R3 right értéke: {}".format(value))
         self.R3X = value
         self.servoControll()
         
@@ -232,41 +233,109 @@ class MyPS4Controller(Controller):
 
     def ArmServoControl(self):
         if self.arrow == "Down":
-            tmpValue = self.servo.getArm0Position()
-            if self.R3Y > 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm0Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            oldPosition = self.servo.getArm0Position()
+            if self.R3Y > 0:                
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition + stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm0Position(newPosition)
+                    """
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now))
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm0Position()))
+                    """
             if self.R3Y < 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm0Position(tmpValue - int(self.BASESTEPSIZE * stepSize))     
-
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition - stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm0Position(newPosition)
+                    """
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now)) 
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm0Position()))
+                    """
         if self.arrow == "Right":
-            tmpValue = self.servo.getArm1Position()
-            if self.R3Y > 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm1Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            oldPosition = self.servo.getArm1Position()
+            if self.R3Y > 0:                
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition + stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm1Position(newPosition)
+                    """
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now))
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm1Position()))
+                    """
             if self.R3Y < 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm1Position(tmpValue - int(self.BASESTEPSIZE * stepSize))
-
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition - stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm1Position(newPosition)
+                    """                    
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now)) 
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm1Position()))
+                    """
         if self.arrow == "Up":
-            tmpValue = self.servo.getArm2Position()
-            if self.R3Y > 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm2Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            oldPosition = self.servo.getArm2Position()
+            if self.R3Y > 0:                
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition + stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm2Position(newPosition)
+                    """
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now))
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm2Position()))
+                    """
             if self.R3Y < 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm2Position(tmpValue - int(self.BASESTEPSIZE * stepSize))
-
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition - stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm2Position(newPosition)                    
+                    """
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now)) 
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm2Position()))
+                    """
         if self.arrow == "Left":
-            tmpValue = self.servo.getArm3Position()
-            if self.R3Y > 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm3Position(tmpValue + int(self.BASESTEPSIZE * stepSize))
+            oldPosition = self.servo.getArm3Position()
+            if self.R3Y > 0:                
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition + stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm3Position(newPosition)
+                    """
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now))
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm3Position()))
+                    """
             if self.R3Y < 0:
-                stepSize = abs(self.R3Y) / 32767 
-                self.servo.setArm3Position(tmpValue - int(self.BASESTEPSIZE * stepSize))
-
+                stepSize = int(abs(self.R3Y) / (32767 / 5)) # 1 - 7 the range
+                newPosition = oldPosition - stepSize
+                if (oldPosition != newPosition) and (abs(oldPosition - newPosition) <= 3):
+                    self.servo.setArm3Position(newPosition)
+                    """
+                    now = datetime.now()
+                    print(stepSize)
+                    print("Time: {}".format(now)) 
+                    print("old Position: {}".format(oldPosition))
+                    print("new position: {}".format(self.servo.getArm3Position()))
+                    """
     def CameraServoControl(self):
         #ToDo I have to implemention
         pass
